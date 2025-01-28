@@ -25,7 +25,7 @@ use core_privacy\local\legacy_polyfill;
  * Privacy Subsystem implementation for local_mmqpc.
  *
  * @package    local_mmqpc
- * @copyright  2025 Your Name <your@email.com>
+ * @copyright  2025 Mawan Agus Nugroho <your@email.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements null_provider {
