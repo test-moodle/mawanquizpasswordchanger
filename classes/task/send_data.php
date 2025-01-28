@@ -55,17 +55,17 @@ class send_data extends \core\task\scheduled_task {
                 AND (q.timeclose = 0 OR q.timeclose > :now2)";
 
         $params = ['now1' => $now, 'now2' => $now];
-        $active_quizzes = $DB->get_field_sql($sql, $params);
+        $activeQuizzes = $DB->get_field_sql($sql, $params);
 
         $lastCheck = date('Y-m-d H:i:s');
-        if ($active_quizzes < 1) {
+        if ($activeQuizzes < 1) {
             mtrace("No active quiz found. No token request to the Mawan.NET server is required. Last check: $lastCheck");
             // Save last successful check time
             set_config('last_check', $lastCheck, 'local_mawanquizpasswordchanger');
             return;
         }
         else {
-            mtrace("$active_quizzes active quizzes were found. Last check: $lastCheck");
+            mtrace("$activeQuizzes active quizzes were found. Last check: $lastCheck");
         }
 
         // Get plugin config
@@ -145,10 +145,10 @@ class send_data extends \core\task\scheduled_task {
                     AND (q.timeclose = 0 OR q.timeclose > :now2)";
             
                     $params = ['now1' => $now, 'now2' => $now];
-                    $active_quizzes = $DB->get_records_sql($sql, $params);
+                    $activeQuizzes = $DB->get_records_sql($sql, $params);
 
                     $changed = 0;
-                    foreach ($active_quizzes as $quiz) {
+                    foreach ($activeQuizzes as $quiz) {
                         // Password length must be a 6-digit number
                         if (preg_match('/^\d{6}$/', $quiz->password)) {
                             $quiz->password = $result->token;
