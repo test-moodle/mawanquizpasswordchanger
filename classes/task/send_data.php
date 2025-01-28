@@ -22,7 +22,7 @@ defined('MOODLE_INTERNAL') || die();
  * Task to send data to mawan.net server.
  *
  * @package    local_mawanquizpasswordchanger
- * @copyright  2025 Mawan
+ * @copyright  2025 Mawan Agus Nugroho
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_data extends \core\task\scheduled_task {
