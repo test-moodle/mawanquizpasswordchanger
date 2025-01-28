@@ -2,7 +2,7 @@
 
 This plugin automatically updates all Quiz Passwords at set intervals, such as every 10 minutes, specifically for quizzes with a 6-digit numerical password. Exam supervisors can download the MMQPC app from Google Play to view the latest passwords.
 
-Do you need an alternative plugin that is compatible with Google Authenticator and doesn't require an internet connection? [Click here](2fa/) to get it.
+Do you need an alternative plugin that is compatible with Google Authenticator and doesn't require an internet connection? [Click here](https://www.mmqpc.mawan.net/2fa/) to get it.
 
 ---
 
