@@ -40,3 +40,4 @@ $string['token_empty'] = '(No token yet)';
 $string['valid_until'] = 'Serial Number is valid until';
 $string['valid_until_desc'] = 'Serial Number is valid until this date.';
 $string['valid_until_empty'] = '(No valid until yet)';
+$string['privacy:metadata'] = 'The Mawan Quiz Password Changer plugin does not store any personal data.';
