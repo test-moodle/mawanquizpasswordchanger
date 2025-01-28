@@ -18,7 +18,7 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package   local_mawanquizpasswordchanger
- * @copyright 2025 Mawan Agus Nugroho <your@email.com>
+ * @copyright 2025 Mawan Agus Nugroho <mawan911@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
