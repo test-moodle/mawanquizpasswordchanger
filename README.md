@@ -8,7 +8,7 @@ Do you need an alternative plugin that is compatible with Google Authenticator a
 
 ### How MMQPC Works
 
-1. The admin installs the [MMQPC plugin](mawanquizpasswordchanger.zip).
+1. The admin installs the MMQPC plugin.
 2. The admin configures the settings in the following menu:
    * **Site Administration**
    * **Plugins**
