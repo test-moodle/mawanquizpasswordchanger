@@ -22,12 +22,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Pengubah Password Kuis Moodle buatan Mawan';
 $string['duration'] = 'Durasi';
 $string['duration_desc'] = 'Durasi dalam menit sebelum password kuis berubah.';
 $string['last_check'] = 'Pengecekan Terakhir';
 $string['last_check_desc'] = 'Pengecekan Terakhir';
 $string['last_check_empty'] = '(Belum ada pengecekan)';
+$string['pluginname'] = 'Pengubah Password Kuis Moodle buatan Mawan';
 $string['privacy:metadata'] = 'Plugin Pengubah Password Kuis Mawan tidak menyimpan data pribadi.';
 $string['salt'] = 'Salt';
 $string['salt_desc'] = 'Salt yang digunakan untuk mengubah password kuis.';
