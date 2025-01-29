@@ -55,46 +55,47 @@ class send_data extends \core\task\scheduled_task {
                 AND (q.timeclose = 0 OR q.timeclose > :now2)";
 
         $params = ['now1' => $now, 'now2' => $now];
-        $activeQuizzes = $DB->get_field_sql($sql, $params);
+        $activequizzes = $DB->get_field_sql($sql, $params);
 
-        $lastCheck = date('Y-m-d H:i:s');
-        if ($activeQuizzes < 1) {
-            mtrace("No active quiz found. No token request to the Mawan.NET server is required. Last check: $lastCheck");
-            // Save last successful check time
-            set_config('last_check', $lastCheck, 'local_mawanquizpasswordchanger');
+        $lastcheck = date('Y-m-d H:i:s');
+        if ($activequizzes < 1) {
+            mtrace("No active quiz found. No token request to the Mawan.NET server is required. Last check: $lastcheck.");
+            // Save last successful check time.
+            set_config('last_check', $lastcheck, 'local_mawanquizpasswordchanger');
             return;
-        }
-        else {
-            mtrace("$activeQuizzes active quizzes were found. Last check: $lastCheck");
+        } else {
+            mtrace("$activequizzes active quizzes were found. Last check: $lastcheck.");
         }
 
-        // Get plugin config
+        // Get plugin config.
         $config = get_config('local_mawanquizpasswordchanger');
 
         if (empty($config->salt)) {
             $config->salt = 'Mawan.NET';
             set_config('salt', $config->salt, 'local_mawanquizpasswordchanger');
-        };
+        }
 
-        if ((int) $config->duration < 1) $config->duration = "10";
+        if ((int) $config->duration < 1) {
+            $config->duration = "10";
+        }
         set_config('duration', (string) $config->duration, 'local_mawanquizpasswordchanger');
 
-        // Prepare data to send
+        // Prepare data to send.
         $data = [
             'wwwroot' => $CFG->wwwroot,
             'salt' => $config->salt ?? 'Mawan.NET',
             'duration' => $config->duration ?? '10',
-            'serial_number' => $config->serialnumber ?? ''
+            'serial_number' => $config->serialnumber ?? '',
         ];
 
-        // API endpoint
+        // API endpoint.
         $url = 'https://mmqpc.mawan.net/get/token/';
 
         try {
-            // Initialize curl
+            // Initialize curl.
             $ch = curl_init();
             
-            // Set curl options
+            // Set curl options.
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
@@ -102,7 +103,7 @@ class send_data extends \core\task\scheduled_task {
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
             
-            // Execute request
+            // Execute request.
             $response = curl_exec($ch);
             
             if (curl_errno($ch)) {
@@ -113,19 +114,19 @@ class send_data extends \core\task\scheduled_task {
             
             curl_close($ch);
             
-            // Parse response
+            // Parse response.
             $result = json_decode($response);
             
             if ($result) {
                 if ($result->status) {
-                    // Success - save token
+                    // Success - save token.
                     set_config('token', $result->token, 'local_mawanquizpasswordchanger');
-                    // Save last successful check time
+                    // Save last successful check time.
                     set_config('last_check', date('Y-m-d H:i:s'), 'local_mawanquizpasswordchanger');
-                    // Success - save valid until
+                    // Success - save valid until.
                     set_config('valid_until', $result->valid_until, 'local_mawanquizpasswordchanger');
                     if (empty($result->valid_until)) {
-                        // Reset to default
+                        // Reset to default.
                         set_config('salt', 'Mawan.NET', 'local_mawanquizpasswordchanger');
                         set_config('duration', '10', 'local_mawanquizpasswordchanger');
                     }
@@ -133,7 +134,7 @@ class send_data extends \core\task\scheduled_task {
                     mtrace("Token updated successfully: " . $result->keterangan);
                     mtrace("New token: " . $result->token);
 
-                    // Search for quizzes that are actively open
+                    // Search for quizzes that are actively open.
                     $sql = "SELECT q.id AS id, 
                     q.password AS password
                     FROM {quiz} q
@@ -145,26 +146,26 @@ class send_data extends \core\task\scheduled_task {
                     AND (q.timeclose = 0 OR q.timeclose > :now2)";
             
                     $params = ['now1' => $now, 'now2' => $now];
-                    $activeQuizzes = $DB->get_records_sql($sql, $params);
+                    $activequizzes = $DB->get_records_sql($sql, $params);
 
                     $changed = 0;
-                    foreach ($activeQuizzes as $quiz) {
-                        // Password length must be a 6-digit number
+                    foreach ($activequizzes as $quiz) {
+                        // Password length must be a 6-digit number.
                         if (preg_match('/^\d{6}$/', $quiz->password)) {
                             $quiz->password = $result->token;
                             
-                            // Updating the password in the database
+                            // Updating the password in the database.
                             $DB->update_record('quiz', $quiz);
                             $changed++;                            
                         }
-                    };
+                    }
                     mtrace($changed . " quiz password(s) have been changed.");
                 } else {
-                    // Failed
+                    // Failed.
                     mtrace("Failed to get token: " . $result->keterangan);
                 }
             } else {
-                mtrace("Failed to parse server response");
+                mtrace("Failed to parse server response.");
             }
             
         } catch (\Exception $e) {

@@ -23,19 +23,20 @@
  */
 
 $string['pluginname'] = 'Pengubah Password Kuis Moodle buatan Mawan';
-$string['salt'] = 'Salt';
-$string['salt_desc'] = 'Salt yang digunakan untuk mengubah password kuis.';
 $string['duration'] = 'Durasi';
 $string['duration_desc'] = 'Durasi dalam menit sebelum password kuis berubah.';
+$string['last_check'] = 'Pengecekan Terakhir';
+$string['last_check_desc'] = 'Pengecekan Terakhir';
+$string['last_check_empty'] = '(Belum ada pengecekan)';
+$string['privacy:metadata'] = 'Plugin Pengubah Password Kuis Mawan tidak menyimpan data pribadi.';
+$string['salt'] = 'Salt';
+$string['salt_desc'] = 'Salt yang digunakan untuk mengubah password kuis.';
 $string['serialnumber'] = 'Nomor Serial';
 $string['serialnumber_desc'] = 'Nomor serial untuk plugin.';
 $string['tasksenddata'] = 'Kirim data ke server mawan.net';
 $string['token'] = 'Token Terakhir';
 $string['token_desc'] = 'Token terakhir yang diterima dari server Mawan.net';
 $string['token_empty'] = '(Belum ada token)';
-$string['last_check'] = 'Pengecekan Terakhir';
-$string['last_check_desc'] = 'Pengecekan Terakhir';
-$string['last_check_empty'] = '(Belum ada pengecekan)';
 $string['valid_until'] = 'Masa berlaku Serial Number';
 $string['valid_until_desc'] = 'Masa berlaku Serial Number.';
 $string['valid_until_empty'] = '(Belum ada masa berlaku)';
