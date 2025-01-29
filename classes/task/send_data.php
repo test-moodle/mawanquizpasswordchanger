@@ -16,8 +16,6 @@
 
 namespace local_mawanquizpasswordchanger\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Task to send data to mawan.net server.
  *
@@ -94,7 +92,7 @@ class send_data extends \core\task\scheduled_task {
         try {
             // Initialize curl.
             $ch = curl_init();
-            
+
             // Set curl options.
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -102,21 +100,21 @@ class send_data extends \core\task\scheduled_task {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            
+
             // Execute request.
             $response = curl_exec($ch);
-            
+
             if (curl_errno($ch)) {
                 mtrace("Curl error: " . curl_error($ch));
                 curl_close($ch);
                 return;
             }
-            
+
             curl_close($ch);
-            
+
             // Parse response.
             $result = json_decode($response);
-            
+
             if ($result) {
                 if ($result->status) {
                     // Success - save token.
@@ -135,7 +133,7 @@ class send_data extends \core\task\scheduled_task {
                     mtrace("New token: " . $result->token);
 
                     // Search for quizzes that are actively open.
-                    $sql = "SELECT q.id AS id, 
+                    $sql = "SELECT q.id AS id,
                     q.password AS password
                     FROM {quiz} q
                     JOIN {course_modules} cm ON cm.instance = q.id
@@ -144,7 +142,7 @@ class send_data extends \core\task\scheduled_task {
                     AND cm.visible = 1
                     AND (q.timeopen = 0 OR q.timeopen <= :now1)
                     AND (q.timeclose = 0 OR q.timeclose > :now2)";
-            
+
                     $params = ['now1' => $now, 'now2' => $now];
                     $activequizzes = $DB->get_records_sql($sql, $params);
 
@@ -153,10 +151,10 @@ class send_data extends \core\task\scheduled_task {
                         // Password length must be a 6-digit number.
                         if (preg_match('/^\d{6}$/', $quiz->password)) {
                             $quiz->password = $result->token;
-                            
+
                             // Updating the password in the database.
                             $DB->update_record('quiz', $quiz);
-                            $changed++;                            
+                            $changed++;
                         }
                     }
                     mtrace($changed . " quiz password(s) have been changed.");
@@ -167,7 +165,7 @@ class send_data extends \core\task\scheduled_task {
             } else {
                 mtrace("Failed to parse server response.");
             }
-            
+
         } catch (\Exception $e) {
             mtrace("Error: " . $e->getMessage());
         }
