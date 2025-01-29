@@ -117,7 +117,7 @@ class send_data extends \core\task\scheduled_task {
 
             if (json_last_error() !== JSON_ERROR_NONE) {
                 // Tangani kesalahan
-                echo "Terjadi kesalahan saat mendekode JSON: " . json_last_error_msg();
+                echo "An error occurred while decoding JSON: " . json_last_error_msg();
             } elseif (isset($result->status) && is_bool($result->status) && isset($result->keterangan) && isset($result->token)) {
                 if ($result->status) {
                     // Success - save token.
