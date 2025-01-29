@@ -115,14 +115,18 @@ class send_data extends \core\task\scheduled_task {
             // Parse response.
             $result = json_decode($response);
 
-            if ($result) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                // Tangani kesalahan
+                echo "Terjadi kesalahan saat mendekode JSON: " . json_last_error_msg();
+            } elseif (isset($result->status) && is_bool($result->status) && isset($result->keterangan) && isset($result->token)) {
                 if ($result->status) {
                     // Success - save token.
                     set_config('token', $result->token, 'local_mawanquizpasswordchanger');
                     // Save last successful check time.
                     set_config('last_check', date('Y-m-d H:i:s'), 'local_mawanquizpasswordchanger');
                     // Success - save valid until.
-                    set_config('valid_until', $result->valid_until, 'local_mawanquizpasswordchanger');
+                    $valid_until = isset($result->valid_until) ? $result->valid_until : "";
+                    set_config('valid_until', $valid_until, 'local_mawanquizpasswordchanger');
                     if (empty($result->valid_until)) {
                         // Reset to default.
                         set_config('salt', 'Mawan.NET', 'local_mawanquizpasswordchanger');
@@ -163,7 +167,8 @@ class send_data extends \core\task\scheduled_task {
                     mtrace("Failed to get token: " . $result->keterangan);
                 }
             } else {
-                mtrace("Failed to parse server response.");
+                // Invalid response.
+                mtrace("Invalid response: " . $response);
             }
 
         } catch (\Exception $e) {
