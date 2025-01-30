@@ -188,19 +188,16 @@ class send_data extends \core\task\scheduled_task {
             foreach ($activequizzes as $quiz) {
                 // Password length must be a 6-digit number.
                 if (preg_match('/^\d{6}$/', $quiz->password)) {
-                    if (($changed == 0) || !isset($result)) {
+                    if (!isset($server)) {
                         mtrace("Sending token request to the Mawan.NET server...");
-                        $result = $this->get_token();
-                        if (!$result) {
+                        $server = $this->get_token();
+                        if (!$server) {
                             mtrace("Token request failed.");
                             return;
                         }
-                        $current_token = $result->token;
-                        $need_new_token = false;
-                        mtrace("Token request sent successfully.");
+                        mtrace("Successfully obtained token from server.");
                     }
-
-                    $quiz->password = $current_token;
+                    $quiz->password = $server->token;
 
                     // Updating the password in the database.
                     $DB->update_record('quiz', $quiz);
