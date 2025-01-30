@@ -25,6 +25,13 @@ namespace local_mawanquizpasswordchanger\task;
  */
 class send_data extends \core\task\scheduled_task {
 
+    /* Variables used:
+    salt = String that will be combined with the token generation algorithm.
+    duration = Duration in minutes before the quiz password changes.
+    serial_number = Serial number that will be sent to mawan.net server.
+    valid_until = Date when the serial number will no longer be valid.
+    */
+
     /**
      * Get a descriptive name for this task.
      *
@@ -34,49 +41,22 @@ class send_data extends \core\task\scheduled_task {
         return get_string('tasksenddata', 'local_mawanquizpasswordchanger');
     }
 
-    /**
-     * Send data to mawan.net server.
-     */
-    public function execute() {
-        global $CFG, $DB;
-
-        // Count how many Quizzes are currently open.
-        $now = time();
-
-        $sql = "SELECT COUNT(q.id) AS active_quizzes
-                FROM {quiz} q
-                JOIN {course_modules} cm ON cm.instance = q.id
-                JOIN {modules} m ON m.id = cm.module
-                WHERE m.name = 'quiz'
-                AND cm.visible = 1
-                AND (q.timeopen = 0 OR q.timeopen <= :now1)
-                AND (q.timeclose = 0 OR q.timeclose > :now2)";
-
-        $params = ['now1' => $now, 'now2' => $now];
-        $activequizzes = $DB->get_field_sql($sql, $params);
-
-        $lastcheck = date('Y-m-d H:i:s');
-        if ($activequizzes < 1) {
-            mtrace("No active quiz found. No token request to the Mawan.NET server is required. Last check: $lastcheck.");
-            // Save last successful check time.
-            set_config('last_check', $lastcheck, 'local_mawanquizpasswordchanger');
-            return;
-        } else {
-            mtrace("$activequizzes active quizzes were found. Last check: $lastcheck.");
-        }
-
+    function get_token() {
+        global $CFG;
         // Get plugin config.
         $config = get_config('local_mawanquizpasswordchanger');
 
-        if (empty($config->salt)) {
+        // If salt is empty, default to "Mawan.NET".
+        if (!isset($config->salt) || !is_string($config->salt) || empty($config->salt)) {
             $config->salt = 'Mawan.NET';
             set_config('salt', $config->salt, 'local_mawanquizpasswordchanger');
-        }
+        };
 
-        if ((int) $config->duration < 1) {
+        // If duration is less than 1, default to 10.
+        if (!isset($config->duration) || !is_string($config->duration) || (int) $config->duration < 1) {
             $config->duration = "10";
         }
-        set_config('duration', (string) $config->duration, 'local_mawanquizpasswordchanger');
+        set_config('duration', (string)((int) $config->duration), 'local_mawanquizpasswordchanger');
 
         // Prepare data to send.
         $data = [
@@ -104,10 +84,11 @@ class send_data extends \core\task\scheduled_task {
             // Execute request.
             $response = curl_exec($ch);
 
+            // Check for errors.
             if (curl_errno($ch)) {
                 mtrace("Curl error: " . curl_error($ch));
                 curl_close($ch);
-                return;
+                return null;
             }
 
             curl_close($ch);
@@ -115,9 +96,11 @@ class send_data extends \core\task\scheduled_task {
             // Parse response.
             $result = json_decode($response);
 
+            // Check for errors.
             if (json_last_error() !== JSON_ERROR_NONE) {
-                // Tangani kesalahan
-                echo "An error occurred while decoding JSON: " . json_last_error_msg();
+                mtrace("An error occurred while decoding JSON: " . json_last_error_msg());
+                return null;
+            // Check if the response is valid.
             } elseif (isset($result->status) && is_bool($result->status) && isset($result->keterangan) && isset($result->token)) {
                 if ($result->status) {
                     // Success - save token.
@@ -135,44 +118,96 @@ class send_data extends \core\task\scheduled_task {
 
                     mtrace("Token updated successfully: " . $result->keterangan);
                     mtrace("New token: " . $result->token);
-
-                    // Search for quizzes that are actively open.
-                    $sql = "SELECT q.id AS id,
-                    q.password AS password
-                    FROM {quiz} q
-                    JOIN {course_modules} cm ON cm.instance = q.id
-                    JOIN {modules} m ON m.id = cm.module
-                    WHERE m.name = 'quiz'
-                    AND cm.visible = 1
-                    AND (q.timeopen = 0 OR q.timeopen <= :now1)
-                    AND (q.timeclose = 0 OR q.timeclose > :now2)";
-
-                    $params = ['now1' => $now, 'now2' => $now];
-                    $activequizzes = $DB->get_records_sql($sql, $params);
-
-                    $changed = 0;
-                    foreach ($activequizzes as $quiz) {
-                        // Password length must be a 6-digit number.
-                        if (preg_match('/^\d{6}$/', $quiz->password)) {
-                            $quiz->password = $result->token;
-
-                            // Updating the password in the database.
-                            $DB->update_record('quiz', $quiz);
-                            $changed++;
-                        }
-                    }
-                    mtrace($changed . " quiz password(s) have been changed.");
-                } else {
-                    // Failed.
-                    mtrace("Failed to get token: " . $result->keterangan);
+                    return $result;
                 }
-            } else {
-                // Invalid response.
-                mtrace("Invalid response: " . $response);
+                // the response indicates an error.
+                else {
+                    mtrace("Failed to update token: " . $result->keterangan);
+                    return null;
+                }
             }
+            // Invalid response format.
+            else {
+                mtrace("Invalid response format");
+                return null;
+            }
+        }
+        // An error occurred.
+        catch (\Exception $e) {
+            mtrace("An error occurred: " . $e->getMessage());
+            return null;
+        }
+    }
 
-        } catch (\Exception $e) {
-            mtrace("Error: " . $e->getMessage());
+    /**
+     * Change all active quiz passwords with token.
+     */
+    public function execute() {
+        global $CFG, $DB;
+
+        // Count how many Quizzes are currently open.
+        $now = time();
+
+        $sql = "SELECT COUNT(q.id) AS active_quizzes
+                FROM {quiz} q
+                JOIN {course_modules} cm ON cm.instance = q.id
+                JOIN {modules} m ON m.id = cm.module
+                WHERE m.name = 'quiz'
+                AND cm.visible = 1
+                AND (q.timeopen = 0 OR q.timeopen <= :now1)
+                AND (q.timeclose = 0 OR q.timeclose > :now2)";
+
+        $params = ['now1' => $now, 'now2' => $now];
+        $activequizzes = $DB->get_field_sql($sql, $params);
+
+        $lastcheck = date('Y-m-d H:i:s');
+        // No Quizzes are currently open.
+        if ($activequizzes < 1) {
+            mtrace("No active quiz found. No token request to the Mawan.NET server is required. Last check: $lastcheck.");
+            // Save last successful check time.
+            set_config('last_check', $lastcheck, 'local_mawanquizpasswordchanger');
+            return;
+        } else {
+            mtrace("$activequizzes active quizzes were found. Last check: $lastcheck.");
+
+            // Search for quizzes that are actively open.
+            $sql = "SELECT q.id AS id,
+            q.password AS password
+            FROM {quiz} q
+            JOIN {course_modules} cm ON cm.instance = q.id
+            JOIN {modules} m ON m.id = cm.module
+            WHERE m.name = 'quiz'
+            AND cm.visible = 1
+            AND (q.timeopen = 0 OR q.timeopen <= :now1)
+            AND (q.timeclose = 0 OR q.timeclose > :now2)";
+
+            $params = ['now1' => $now, 'now2' => $now];
+            $activequizzes = $DB->get_records_sql($sql, $params);
+
+            $changed = 0;
+            foreach ($activequizzes as $quiz) {
+                // Password length must be a 6-digit number.
+                if (preg_match('/^\d{6}$/', $quiz->password)) {
+                    if (($changed == 0) || !isset($result)) {
+                        mtrace("Sending token request to the Mawan.NET server...");
+                        $result = $this->get_token();
+                        if (!$result) {
+                            mtrace("Token request failed.");
+                            return;
+                        }
+                        $current_token = $result->token;
+                        $need_new_token = false;
+                        mtrace("Token request sent successfully.");
+                    }
+
+                    $quiz->password = $current_token;
+
+                    // Updating the password in the database.
+                    $DB->update_record('quiz', $quiz);
+                    $changed++;
+                }
+            }
+            mtrace($changed . " quiz password(s) have been changed.");
         }
     }
 }
