@@ -41,7 +41,12 @@ class send_data extends \core\task\scheduled_task {
         return get_string('tasksenddata', 'local_mawanquizpasswordchanger');
     }
 
-    function get_token() {
+    /**
+     * Get token from Mawan.NET server.
+     *
+     * @return object|null Token object if successful, null if failed
+     */
+    private function get_token() {
         global $CFG;
         // Get plugin config.
         $config = get_config('local_mawanquizpasswordchanger');
@@ -100,16 +105,15 @@ class send_data extends \core\task\scheduled_task {
             if (json_last_error() !== JSON_ERROR_NONE) {
                 mtrace("An error occurred while decoding JSON: " . json_last_error_msg());
                 return null;
-            // Check if the response is valid.
-            } elseif (isset($result->status) && is_bool($result->status) && isset($result->keterangan) && isset($result->token)) {
+            } else if (isset($result->status) && is_bool($result->status) && isset($result->keterangan) && isset($result->token)) {
                 if ($result->status) {
                     // Success - save token.
                     set_config('token', $result->token, 'local_mawanquizpasswordchanger');
                     // Save last successful check time.
                     set_config('last_check', date('Y-m-d H:i:s'), 'local_mawanquizpasswordchanger');
                     // Success - save valid until.
-                    $valid_until = isset($result->valid_until) ? $result->valid_until : "";
-                    set_config('valid_until', $valid_until, 'local_mawanquizpasswordchanger');
+                    $validuntil = isset($result->valid_until) ? $result->valid_until : "";
+                    set_config('valid_until', $validuntil, 'local_mawanquizpasswordchanger');
                     if (empty($result->valid_until)) {
                         // Reset to default.
                         set_config('salt', 'Mawan.NET', 'local_mawanquizpasswordchanger');
@@ -119,21 +123,15 @@ class send_data extends \core\task\scheduled_task {
                     mtrace("Token updated successfully: " . $result->keterangan);
                     mtrace("New token: " . $result->token);
                     return $result;
-                }
-                // the response indicates an error.
-                else {
+                } else {
                     mtrace("Failed to update token: " . $result->keterangan);
                     return null;
                 }
-            }
-            // Invalid response format.
-            else {
+            } else {
                 mtrace("Invalid response format");
                 return null;
             }
-        }
-        // An error occurred.
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             mtrace("An error occurred: " . $e->getMessage());
             return null;
         }
