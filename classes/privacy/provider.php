@@ -16,8 +16,9 @@
 
 namespace local_mawanquizpasswordchanger\privacy;
 
-use core_privacy\local\metadata\null_provider;
-use core_privacy\local\legacy_polyfill;
+use core_privacy\local\metadata\collection;
+use core_privacy\local\request\user_preference_provider;
+use core_privacy\local\request\writer;
 
 /**
  * Privacy Subsystem implementation for local_mawanquizpasswordchanger.
@@ -26,16 +27,19 @@ use core_privacy\local\legacy_polyfill;
  * @copyright  2025 Mawan Agus Nugroho <your@email.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements null_provider {
-    use legacy_polyfill;
+class provider implements
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\user_preference_provider {
 
-    /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
-     */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+    public static function get_metadata(collection $collection): collection {
+        $collection->add_external_location('mawan_quiz_password', [
+            'serial_number' => 'privacy:metadata:serialnumber',
+            'valid_until' => 'privacy:metadata:validuntil'
+        ], 'privacy:metadata:mawanquizpasswordchanger');
+        return $collection;
+    }
+
+    public static function export_user_preferences(int $userid) {
+        // Jika ada preferensi pengguna yang terkait
     }
 }
