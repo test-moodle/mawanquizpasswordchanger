@@ -1,4 +1,4 @@
-# Mawan Moodle Quiz Password Changer
+# Mawan Quiz Password Changer
 
 This plugin automatically updates all Quiz Passwords at set intervals, such as every 10 minutes, specifically for quizzes with a 6-digit numerical password. Exam supervisors can download the MMQPC app from Google Play to view the latest passwords.
 
@@ -12,18 +12,18 @@ Do you need an alternative plugin that is compatible with Google Authenticator a
 2. The admin configures the settings in the following menu:
    * **Site Administration**
    * **Plugins**
-   * **Local Plugins → Mawan Moodle Quiz Password Changer**
-   
+   * **Local Plugins → Mawan Quiz Password Changer**
+
    Set the **Salt** and **Duration** values, then save the settings.
 3. The quizzes are assigned a 6-digit numerical password, such as 111111 or 123456.
-4. Exam supervisors install the **Moodle Quiz Password Changer** app, available on [Google Play](https://play.google.com/store/apps/details?id=appinventor.ai_mawan911.MMQPC).
+4. Exam supervisors install the **MMawan Quiz Password Changer** app, available on [Google Play](https://play.google.com/store/apps/details?id=appinventor.ai_mawan911.MMQPC).
 5. When a quiz is active, the plugin automatically generates a new random 6-digit password at intervals set by the **Duration** parameter (e.g., every 10 minutes).
-6. The exam supervisor checks the Moodle Quiz Password Changer app on their Android device. The screen will display the latest password. **No internet connection is required!** The token (password) is reliably displayed, even in closed rooms with poor internet signal.
+6. The exam supervisor checks the Mawan Quiz Password Changer app on their Android device. The screen will display the latest password. **No internet connection is required!** The token (password) is reliably displayed, even in closed rooms with poor internet signal.
 7. The exam supervisor announces the password (token) displayed on their device, and students enter it on their devices.
 8. Students begin the quiz.
-9. If a student exits or is forced out of Moodle after the 11th minute, they cannot use the same password to re-enter because the plugin has already changed it. This mechanism is similar to the token system used in UNBK (Ujian Nasional Berbasis Komputer, which means Computer-Based National Examination in Indonesian).
+9. If a student exits or is forced out of Mawan after the 11th minute, they cannot use the same password to re-enter because the plugin has already changed it. This mechanism is similar to the token system used in UNBK (Ujian Nasional Berbasis Komputer, which means Computer-Based National Examination in Indonesian).
 
-> **Note:**  
+> **Note:**
 > The Moodle admin must either:
 > 1. Configure Moodle's `cron.php` to run every minute, or
 > 2. Run it manually through the menu: Site administration → Server → Tasks → Scheduled Tasks → Send data to mawan.net server → Run now
