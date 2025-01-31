@@ -31,15 +31,26 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\user_preference_provider {
 
+    /**
+     * Returns metadata about this plugin's privacy features.
+     *
+     * @param collection $collection The initialised collection to add items to.
+     * @return collection A listing of user data stored through this system.
+     */
     public static function get_metadata(collection $collection): collection {
         $collection->add_external_location('mawan_quiz_password', [
             'serial_number' => 'privacy:metadata:serialnumber',
-            'valid_until' => 'privacy:metadata:validuntil'
+            'valid_until' => 'privacy:metadata:validuntil',
         ], 'privacy:metadata:mawanquizpasswordchanger');
         return $collection;
     }
 
+    /**
+     * Export all user preferences for the plugin.
+     *
+     * @param int $userid The userid of the user whose data is to be exported.
+     */
     public static function export_user_preferences(int $userid) {
-        // Jika ada preferensi pengguna yang terkait
+        // No user preferences are stored in this plugin.
     }
 }
